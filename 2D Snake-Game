@@ -1,0 +1,337 @@
+import pygame
+import random
+import sys
+import time
+
+pygame.init()
+
+#X,Y beginnt oben links
+
+display_width = 800
+display_height = 600
+
+black = (0,0,0)
+white = (255, 255, 255)
+green = (0,200,0)
+red = (200,0,0)
+bright_green = (0,255,0)
+bright_red = (255,0,0)
+
+blue = (0,0,255)
+score = 1
+pause = False
+
+game_display = pygame.display.set_mode((display_width,display_height))
+pygame.display.set_caption("2D-Snake Game")
+clock = pygame.time.Clock()
+
+
+#TEXT
+"""def text_objects(text, font):
+    textSurface = font.render(text, True, black)
+    return textSurface, textSurface.get_rect()"""
+
+def GOmessage_display(text):
+    largeText = pygame.font.SysFont('comicsansms', 50)
+    GOSurf = largeText.render(text, True, black)
+    GORect = GOSurf.get_rect()
+    GORect.topleft = ((275), (100))
+    game_display.blit(GOSurf, GORect)
+
+
+    pygame.display.update()
+
+    time.sleep(2)
+
+    game_loop()
+
+
+
+
+
+
+
+
+def button(msg,x,y,w,h,ic,ac,action=None):
+    mouse = pygame.mouse.get_pos()
+    click = pygame.mouse.get_pressed()
+    #print(click)
+    if x+w > mouse[0] > x and y+h > mouse[1] > y:
+        pygame.draw.rect(game_display, ac,(x,y,w,h))
+        if click[0] == 1 and action != None:
+            action()
+    else:
+        pygame.draw.rect(game_display, ic,(x,y,w,h))
+    smallText = pygame.font.SysFont("comicsansms", 20)
+    textSurf, textRect = text_objects(msg, smallText)
+    textRect.center = ( (x+(w/2)), (y+(h/2))  )
+    game_display.blit(textSurf, textRect)
+
+def quitgame():
+    pygame.quit()
+    quit()
+
+ #pause
+
+def unpause():
+    global pause
+    pause = False
+
+def paused():
+    global pause
+
+    while pause:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    pause = False
+
+            if event.type == pygame.JOYBUTTONDOWN:
+                if event.button == 9: #start
+                    pause = False
+
+
+def text_objects(text, font):
+        textSurface = font.render(text, True, black)
+        return textSurface, textSurface.get_rect()
+
+
+
+
+joysticks = []
+
+for i in range(0, pygame.joystick.get_count()):
+    joysticks.append(pygame.joystick.Joystick(i))
+    joysticks[-1].init()
+    print ("Detectes joystick '",joysticks[-1].get_name(),"'")
+
+# how many joysticks connected to computer?
+joystick_count = pygame.joystick.get_count()
+print ("There is " + str(joystick_count) + " joystick/s")
+
+if joystick_count == 1:
+    # initialise joystick
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
+
+def game_loop():
+    global pause
+
+    #food_parameters
+    food_startx = random.randrange(0, display_width)
+    food_starty = random.randrange(0, display_height)
+    food_width = 15
+    food_height = 15
+    foodPos = [300,300]
+    foodSpawn = True
+
+    #snake_parameters
+    Snakepos = [350,350]
+    snake_width = 15
+    snake_height = 15
+    snakeBody = [[350,350], [340,350], [330,350]]
+    dirchange = ''
+    delta = 10
+    richtung = 'Right'
+    score = 0
+    bound = False
+    rich_change = False
+    tick = 5
+
+    #ScoreText
+    def Score_display(text):
+        score_text = pygame.font.SysFont('comicsansms', 20)
+        ScoreSurf, ScoreRect = text_objects(text, score_text)
+        ScoreRect.midtop = (60, 10)
+        game_display.blit(ScoreSurf, ScoreRect)
+
+    def ScoreText(choice=1):
+        Score_display('Score: {0}'.format(score))
+
+    gameExit = False
+    while not gameExit:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+                    dirchange = 'Left'
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+                    dirchange = 'Right'
+                if event.key == pygame.K_UP or event.key == pygame.K_w:
+                    dirchange = 'Up'
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s:
+                    dirchange = 'Down'
+                if event.key == pygame.K_p:
+                    pause = True
+                    paused()
+                if event.key == pygame.K_r:
+                    game_loop()
+
+                if event.key == pygame.K_k:
+                    if bound == False:
+                        bound = True
+                    elif bound == True:
+                        bound = False
+
+
+            if joystick_count == 1:
+                if event.type == pygame.JOYBUTTONDOWN: #braucht es auch
+                    if event.button == 9: #start
+                        pause = True
+                        paused()
+                    if event.button == 8: #select
+                        game_loop()
+
+                    if event.button == 1: #A
+                        if bound == False:
+                            bound = True
+                        elif bound == True:
+                            bound = False
+                    if event.button == 0:  #B
+                        pygame.quit
+                        quit()
+
+
+                if joystick.get_axis(1) < -0.1:
+                    dirchange = 'Up'
+                if joystick.get_axis(1) > 0.1:
+                    dirchange = 'Down'
+                if joystick.get_axis(0) < -0.1:
+                    dirchange = 'Left'
+                if joystick.get_axis(0) > 0.1:
+                    dirchange = 'Right'
+
+
+        #richtungen
+        if dirchange == 'Left' and richtung != 'Right':
+            richtung = dirchange
+        if dirchange == 'Right' and richtung != 'Left':
+            richtung = dirchange
+        if dirchange == 'Up' and richtung != 'Down':
+            richtung = dirchange
+        if dirchange == 'Down' and richtung != 'Up':
+            richtung = dirchange
+
+
+
+        if richtung == 'Left':
+            Snakepos[0] -= delta
+        if richtung == 'Right':
+            Snakepos[0] += delta
+        if richtung == 'Up':
+            Snakepos[1] -= delta
+        if richtung == 'Down':
+            Snakepos[1] += delta
+
+#schlangen funktion
+        snakeBody.insert(0, list(Snakepos))
+        if Snakepos == foodPos:
+            foodSpawn = False
+            score += 1
+        else:
+            snakeBody.pop()
+        if foodSpawn == False:
+            foodPos = [random.randrange(1, display_width // 10) * delta, random.randrange(1, display_height // 10) * delta]
+            foodSpawn = True
+
+        game_display.fill(white)
+        for pos in snakeBody:
+            pygame.draw.rect(game_display, green, pygame.Rect(pos[0], pos[1], delta, delta))
+        pygame.draw.rect(game_display, blue, pygame.Rect(foodPos[0], foodPos[1], delta, delta))
+
+
+#GAMEOVER
+        def GameOver():
+
+            GOWindow = pygame.display.set_mode((display_width,display_height))
+            pygame.display.set_caption("Game Over")
+            GOWindow.fill(white)
+            clock = pygame.time.Clock()
+
+            GameOver = True
+
+            while GameOver:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        quit()
+
+                #game over text
+                largeText = pygame.font.SysFont('comicsansms', 50)
+                GOSurf = largeText.render("Game Over!", True, red)
+                GORect = GOSurf.get_rect()
+                GORect.topleft = ((250), (100))
+                game_display.blit(GOSurf, GORect)
+
+                #show Score
+                mediumText = pygame.font.SysFont('comicsansms', 35)
+                SSurf = mediumText.render(('Score: {0}'.format(score)), True, black)
+                SRect = SSurf.get_rect()
+                SRect.topleft = ((325), (display_height/3))
+                game_display.blit(SSurf, SRect)
+
+
+                button("Again?",150,450,100,50,green,bright_green, game_loop)
+                button("Quit",550,450,100,50,red,bright_red, quitgame)
+
+                pygame.display.update()
+
+        if not bound:
+            if Snakepos[0] >= display_width:
+                Snakepos[0] = 0
+            if Snakepos[0] < 0:
+                Snakepos[0] = display_width
+            if Snakepos[1] >= display_height:
+                Snakepos[1] = 0
+            if Snakepos[1] < 0:
+                Snakepos[1] = display_height
+
+        elif bound:
+
+            if Snakepos[0] >= display_width or Snakepos[0] < 0:
+                ScoreText()
+                GameOver()
+            if Snakepos[1] >= display_height or Snakepos[1] < 0:
+                ScoreText()
+                GameOver()
+
+
+#zufällige richtung
+        if not rich_change:
+            time_richtung = 0
+            if time_richtung < 100000:
+                richtung_rand = random.randint(1,4)
+                tick -= 1
+                if tick <= 0:
+                    if richtung_rand == 1:
+                        richtung_rand = 'Left'
+                    if richtung_rand == 2:
+                        richtung_rand = 'Right'
+                    if richtung_rand == 3:
+                        richtung_rand = 'Up'
+                    if richtung_rand == 4:
+                        richtung_rand = 'Down'
+                    dirchange = richtung_rand
+                    print(dirchange)
+                    time_richtung += 1
+                    tick = 40
+
+
+        for block in snakeBody[1:]:
+            if Snakepos == block:
+                GameOver()
+
+        ScoreText()
+        pygame.display.update()
+        clock.tick(20)
+
+game_loop()
+pygame.quit
+quit()
